@@ -1,0 +1,169 @@
+
+<nav class="navbar">
+  <a class="brand" href="#" (click)="showView('books')">📚 PageTurner</a>
+
+  <div class="nav-links">
+    <button (click)="showView('books')">Home / Books</button>
+    <button (click)="showView('wishlist')">♡ Wishlist ({{ wishlistCount }})</button>
+    <button (click)="showView('cart')">🛒 Cart ({{ cartCount }})</button>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<header class="hero" *ngIf="activeView === 'books'">
+  <p class="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
+  <h1>Find a book.<br>Discover a world.</h1>
+  <p>Explore stories, ideas and knowledge for every kind of reader.</p>
+  <div class="hero-stats">
+    <span><strong>{{ books.length }}+</strong> Books</span>
+    <span><strong>{{ categories.length - 1 }}</strong> Categories</span>
+    <span><strong>{{ wishlistCount }}</strong> Favorites</span>
+  </div>
+</header>
+
+<main class="container">
+  <p class="notice" *ngIf="message">{{ message }}</p>
+
+  <section *ngIf="activeView === 'books'">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">THE BOOKSHELF</p>
+        <h2>Explore our collection</h2>
+      </div>
+      <span>{{ filteredBooks.length }} books found</span>
+    </div>
+
+    <div class="filters">
+      <input
+        type="search"
+        [(ngModel)]="searchText"
+        placeholder="Search title, author or category..."
+      >
+
+      <select [(ngModel)]="selectedCategory">
+        <option *ngFor="let category of categories" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+    </div>
+
+    <div class="book-grid">
+      <article class="book-card" *ngFor="let book of filteredBooks">
+        <div class="book-cover">
+          <span class="cover-emoji">{{ book.emoji }}</span>
+          <button
+            class="heart-button"
+            [class.liked]="isWishlisted(book)"
+            (click)="toggleWishlist(book)"
+            [attr.aria-label]="isWishlisted(book) ? 'Remove from wishlist' : 'Add to wishlist'"
+          >{{ isWishlisted(book) ? '♥' : '♡' }}</button>
+        </div>
+
+        <div class="book-info">
+          <span class="category-tag">{{ book.category }}</span>
+          <h3>{{ book.title }}</h3>
+          <p class="author">by {{ book.author }}</p>
+
+          <div class="book-bottom">
+            <strong class="price">₹{{ book.price }}</strong>
+            <button class="add-button" (click)="addToCart(book)">
+              + Add
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <p class="empty-state" *ngIf="filteredBooks.length === 0">
+      No books found. Try another search or category.
+    </p>
+  </section>
+
+  <section *ngIf="activeView === 'cart'">
+    <p class="eyebrow">YOUR SHOPPING BAG</p>
+    <h2>My Cart ({{ cartCount }} items)</h2>
+
+    <div class="shopping-list" *ngIf="cart.length > 0">
+      <article class="shopping-item" *ngFor="let item of cart">
+        <span class="shopping-emoji">{{ item.book.emoji }}</span>
+        <div class="shopping-details">
+          <h3>{{ item.book.title }}</h3>
+          <p>{{ item.book.author }}</p>
+          <strong>₹{{ item.book.price * item.quantity }}</strong>
+        </div>
+        <div class="quantity-controls">
+          <button (click)="decreaseQuantity(item)">−</button>
+          <span>{{ item.quantity }}</span>
+          <button (click)="increaseQuantity(item)">+</button>
+        </div>
+        <button class="remove-button" (click)="removeFromCart(item)">Remove</button>
+      </article>
+
+      <div class="cart-summary">
+        <h3>Order summary</h3>
+        <p>Items: {{ cartCount }}</p>
+        <p class="total-price">Total: ₹{{ cartTotal }}</p>
+        <button class="checkout-button" (click)="checkout()">Place Demo Order</button>
+        <p class="small-note">Demo only — no payment will be taken.</p>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="cart.length === 0">
+      <h3>Your cart is waiting for a good book 📚</h3>
+      <button class="add-button" (click)="showView('books')">Explore Books</button>
+    </div>
+  </section>
+
+  <section *ngIf="activeView === 'wishlist'">
+    <p class="eyebrow">SAVE FOR LATER</p>
+    <h2>My Wishlist ({{ wishlistCount }})</h2>
+
+    <div class="book-grid" *ngIf="wishlist.length > 0">
+      <article class="book-card" *ngFor="let book of wishlist">
+        <div class="book-cover">
+          <span class="cover-emoji">{{ book.emoji }}</span>
+          <button class="heart-button liked" (click)="toggleWishlist(book)">♥</button>
+        </div>
+        <div class="book-info">
+          <span class="category-tag">{{ book.category }}</span>
+          <h3>{{ book.title }}</h3>
+          <p class="author">by {{ book.author }}</p>
+          <div class="book-bottom">
+            <strong class="price">₹{{ book.price }}</strong>
+            <button class="add-button" (click)="addToCart(book)">+ Add</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="wishlist.length === 0">
+      <h3>No favorites yet ❤️</h3>
+      <p>Tap the heart on a book to save it here.</p>
+      <button class="add-button" (click)="showView('books')">Browse Books</button>
+    </div>
+  </section>
+
+  <section id="about" class="about-section" *ngIf="activeView === 'books'">
+    <p class="eyebrow">OUR STORY</p>
+    <h2>Every book opens a new door.</h2>
+    <p>PageTurner brings stories, learning and inspiration together in one place. Find your next favorite read today.</p>
+  </section>
+
+  <section id="contact" class="contact-section" *ngIf="activeView === 'books'">
+    <p class="eyebrow">GET IN TOUCH</p>
+    <h2>We'd love to hear from you.</h2>
+    <form (ngSubmit)="sendMessage()">
+      <input name="name" [(ngModel)]="contactName" placeholder="Your name" required>
+      <input name="email" [(ngModel)]="contactEmail" type="email" placeholder="Your email" required>
+      <textarea name="message" [(ngModel)]="contactMessage" placeholder="Your message" required></textarea>
+      <button class="checkout-button" type="submit">Send Message</button>
+    </form>
+    <p>{{ contactResponse }}</p>
+  </section>
+</main>
+
+<footer>
+  <p>📚 PageTurner Book Store</p>
+  <p>Read more. Discover more. Imagine more.</p>
+</footer>
